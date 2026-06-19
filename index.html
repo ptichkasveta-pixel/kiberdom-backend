@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кибердом — через месяц у вашего ребёнка будет свой мультфильм, бот или игра</title>
+<style>
+  :root{
+    --navy:#13192E;
+    --navy2:#1F2A4D;
+    --yellow:#FFC93C;
+    --yellow-dark:#D98A00;
+    --teal:#1FCFC0;
+    --teal-dark:#0B8F84;
+    --pink:#FF5C8A;
+    --purple:#8B6CFA;
+    --cream:#FBF7EE;
+    --bg:#FBF7EE;
+    --bg-card:#FFFFFF;
+    --ink:#13192E;
+    --text-muted:#6B7280;
+    --radius:24px;
+    --shadow: 0 10px 30px rgba(19,25,46,0.06);
+    --shadow-hover: 0 22px 50px rgba(19,25,46,0.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  img{max-width:100%;display:block;}
+  a{text-decoration:none;color:inherit;}
+  .container{max-width:1180px;margin:0 auto;padding:0 24px;}
+  section{padding:100px 0;}
+  @media(max-width:768px){section{padding:64px 0;}}
+
+  /* ===== noise texture overlay ===== */
+  .noise{
+    position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.035;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ===== reveal animation ===== */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .reveal.delay-1{transition-delay:.08s;}
+  .reveal.delay-2{transition-delay:.16s;}
+  .reveal.delay-3{transition-delay:.24s;}
+  .reveal.delay-4{transition-delay:.32s;}
+  .reveal.delay-5{transition-delay:.4s;}
+
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(var(--r,0deg));}50%{transform:translateY(-14px) rotate(var(--r2,2deg));}}
+  @keyframes bounceArrow{0%,100%{transform:translateX(0);}50%{transform:translateX(5px);}}
+  @keyframes wiggle{0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);}}
+
+  /* ===== header ===== */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:1000;
+    background:rgba(251,247,238,0.82);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(19,25,46,0.06);
+    transition:box-shadow .3s ease, background .3s ease;
+  }
+  header.scrolled{box-shadow:0 4px 24px rgba(19,25,46,0.07);background:rgba(251,247,238,0.96);}
+  .header-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px;max-width:1180px;margin:0 auto;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;color:var(--ink);}
+  .logo .roof{width:28px;height:20px;}
+  .logo .roof svg{width:100%;height:100%;}
+  nav{display:flex;gap:32px;align-items:center;}
+  nav a{
+    font-size:15px;font-weight:700;color:var(--ink);
+    transition:color .2s ease;position:relative;
+  }
+  nav a:hover{color:var(--teal-dark);}
+  .nav-cta{
+    background:var(--ink);
+    color:var(--yellow);
+    padding:12px 26px;
+    border-radius:50px;
+    font-weight:800;
+    font-size:14px;
+    transition: transform .2s ease, background .2s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{transform:translateY(-2px);background:var(--navy2);}
+  .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:6px;}
+  .burger span{display:block;width:24px;height:3px;background:var(--ink);border-radius:2px;}
+  .mobile-menu{
+    display:none;flex-direction:column;gap:18px;
+    background:var(--bg);padding:20px 24px 28px;
+    border-top:1px solid rgba(19,25,46,0.06);
+  }
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-weight:700;font-size:16px;}
+  @media(max-width:880px){
+    nav{display:none;}
+    .nav-cta.desktop-only{display:none;}
+    .burger{display:flex;}
+  }
+
+  /* ===== hero ===== */
+  .hero{
+    position:relative;
+    padding:152px 0 60px;
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid;grid-template-columns:1.15fr 1fr;gap:40px;align-items:center;
+  }
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:10px;
+    background:#fff;
+    border:1px solid rgba(19,25,46,0.08);
+    color:var(--navy);
+    padding:9px 20px;border-radius:50px;
+    font-size:13.5px;font-weight:800;
+    margin-bottom:28px;
+  }
+  .hero-badge .pulse{
+    width:8px;height:8px;border-radius:50%;background:var(--teal);
+    animation:pulseRing 2s infinite;
+  }
+  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(31,207,192,0.6);}70%{box-shadow:0 0 0 9px rgba(31,207,192,0);}100%{box-shadow:0 0 0 0 rgba(31,207,192,0);}}
+  .hero h1{
+    font-size:clamp(32px,4.4vw,52px);font-weight:800;line-height:1.18;
+    margin-bottom:26px;
+    letter-spacing:-1px;
+  }
+  .hero h1 .line2{display:block;}
+  .hero h1 .highlight{
+    position:relative;display:inline-block;
+    color:var(--ink);
+    background:var(--yellow);
+    padding:2px 14px;
+    border-radius:14px;
+    transform:rotate(-2deg);
+    white-space:nowrap;
+  }
+  .hero h1 .accent-circle{
+    position:relative;display:inline-block;
+    color:var(--teal-dark);
+  }
+  .hero h1 .accent-circle svg{
+    position:absolute;left:-6%;top:-15%;width:112%;height:130%;z-index:-1;
+  }
+  .hero p.sub{
+    font-size:19px;color:var(--text-muted);
+    max-width:520px;margin:0 0 36px;
+    font-weight:400;
+  }
+  .hero p.sub b{color:var(--ink);font-weight:800;}
+  .hero-ctas{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:40px;}
+  .btn-primary{
+    background:var(--ink);
+    color:var(--yellow);
+    padding:19px 38px;
+    border-radius:50px;
+    font-weight:800;
+    font-size:17px;
+    border:none;
+    cursor:pointer;
+    transition:transform .25s ease, background .25s ease;
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .btn-primary:hover{transform:translateY(-3px);background:var(--navy2);}
+  .btn-primary .arrow{display:inline-block;animation:bounceArrow 1.6s ease-in-out infinite;}
+  .btn-ghost-note{
+    font-size:14px;color:var(--text-muted);font-weight:700;
+    display:flex;align-items:center;gap:8px;
+  }
+  .btn-ghost-note .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);}
+
+  .hero-partner{
+    display:flex;align-items:center;gap:16px;
+    background:rgba(31,207,192,0.1);
+    border:1.5px solid rgba(31,207,192,0.35);
+    border-radius:18px;
+    padding:16px 20px;
+    margin-bottom:36px;
+    max-width:560px;
+  }
+  .hero-partner-logo{
+    width:54px;height:54px;flex-shrink:0;object-fit:contain;
+  }
+  .hero-partner-text{font-size:15px;font-weight:700;color:var(--ink);line-height:1.4;}
+  .hero-partner-text b{color:var(--teal-dark);}
+  .hero-partner-text span{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-top:3px;}
+  @media(max-width:600px){
+    .hero-partner{flex-direction:row;align-items:flex-start;}
+    .hero-partner-logo{width:46px;height:46px;}
+  }
+
+  .hero-stats{
+    display:flex;gap:0;border-top:1px solid rgba(19,25,46,0.1);padding-top:28px;
+  }
+  .hero-stat{flex:1;padding-right:24px;}
+  .hero-stat:not(:first-child){border-left:1px solid rgba(19,25,46,0.1);padding-left:24px;}
+  .hero-stat .num{font-size:28px;font-weight:800;letter-spacing:-0.5px;}
+  .hero-stat .label{font-size:13px;color:var(--text-muted);font-weight:600;margin-top:4px;}
+
+  /* hero visual - bento */
+  .hero-visual{
+    position:relative;
+    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px;
+  }
+  .hero-tile{
+    border-radius:28px;
+    overflow:hidden;
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    aspect-ratio:1;
+  }
+  .hero-tile.big{
+    grid-column:1/3;aspect-ratio:16/10;
+    background:linear-gradient(140deg, var(--navy) 0%, var(--navy2) 100%);
+  }
+  .hero-tile.t1{background:var(--cream);}
+  .hero-tile.t1 .knight-img{object-fit:cover;object-position:65% center;padding:0;}
+  .hero-tile.t2{background:var(--yellow);}
+  .img-placeholder{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;
+    color:rgba(255,255,255,0.55);
+    font-size:12.5px;font-weight:700;text-align:center;padding:12px;
+  }
+  .hero-tile.t1 .img-placeholder, .hero-tile.t2 .img-placeholder{color:rgba(19,25,46,0.4);}
+  .img-placeholder .ph-tag{
+    font-size:11px;text-transform:uppercase;letter-spacing:1px;
+    padding:4px 10px;border-radius:50px;background:rgba(255,255,255,0.12);
+  }
+  .hero-tile.t1 .ph-tag, .hero-tile.t2 .ph-tag{background:rgba(19,25,46,0.08);}
+  .floatie{
+    position:absolute;border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;box-shadow:0 14px 30px rgba(19,25,46,0.18);
+  }
+  .floatie.f1{
+    top:-18px;right:24px;width:64px;height:64px;background:#fff;
+    --r:-6deg;--r2:-2deg;animation:floaty 7s ease-in-out infinite;
+  }
+  .floatie.f2{
+    bottom:18px;left:-22px;width:56px;height:56px;background:var(--pink);color:#fff;
+    --r:5deg;--r2:9deg;animation:floaty 8s ease-in-out infinite reverse;
+  }
+
+  @media(max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:48px;}
+    .hero-visual{order:-1;}
+  }
+  @media(max-width:768px){
+    .hero{padding:120px 0 50px;}
+    .hero h1{letter-spacing:-1px;}
+    .hero p.sub{font-size:16px;}
+    .btn-primary{padding:17px 30px;font-size:16px;width:100%;justify-content:center;}
+    .hero-ctas{flex-direction:column;align-items:flex-start;}
+    .hero-stats{flex-direction:column;gap:16px;}
+    .hero-stat{border-left:none !important;padding-left:0 !important;border-top:1px solid rgba(19,25,46,0.1);padding-top:14px;}
+    .hero-stat:first-child{border-top:none;padding-top:0;}
+  }
+
+  /* ===== section heading ===== */
+  .section-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:800;letter-spacing:0.5px;
+    color:var(--navy);
+    background:#fff;
+    border:1px solid rgba(19,25,46,0.08);
+    padding:7px 18px;border-radius:50px;
+    margin-bottom:20px;
+  }
+  .section-head{max-width:720px;margin:0 0 56px;}
+  .section-head.center{text-align:center;margin:0 auto 56px;}
+  .section-head h2{font-size:clamp(28px,3.4vw,42px);font-weight:800;margin-bottom:16px;color:var(--ink);letter-spacing:-1px;line-height:1.15;}
+  .section-head p{font-size:17.5px;color:var(--text-muted);}
+  @media(max-width:768px){.section-head h2{font-size:28px;}.section-head p{font-size:16px;}}
+
+  /* ===== problem section (bento) ===== */
+  .problem{background:var(--navy);color:#fff;position:relative;}
+  .problem-bento{
+    display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:auto auto;gap:20px;
+  }
+  .pb-card{
+    border-radius:28px;padding:36px;
+    background:var(--navy2);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .pb-main{
+    grid-row:1/3;
+  }
+  .pb-main h2{font-size:clamp(26px,3.2vw,38px);font-weight:800;line-height:1.32;letter-spacing:-1px;margin-bottom:20px;}
+  .pb-main .accent{
+    background:var(--yellow);color:var(--ink);
+    padding:1px 10px;border-radius:10px;
+    display:inline;
+  }
+  .pb-main p{font-size:16.5px;color:#B9C2DE;margin-bottom:16px;}
+  .pb-quote{
+    margin-top:24px;padding:22px 24px;border-radius:18px;
+    background:rgba(31,207,192,0.1);
+    border:1px solid rgba(31,207,192,0.25);
+    font-size:17px;font-weight:800;color:var(--teal);line-height:1.5;
+  }
+  .pb-stat{
+    display:flex;flex-direction:column;justify-content:center;gap:6px;
+  }
+  .pb-stat .num{font-size:42px;font-weight:800;letter-spacing:-1px;}
+  .pb-stat.s1 .num{color:var(--teal);}
+  .pb-stat.s2 .num{color:var(--yellow);}
+  .pb-stat .label{font-size:14px;color:#B9C2DE;font-weight:600;}
+  @media(max-width:880px){
+    .problem-bento{grid-template-columns:1fr;grid-template-rows:auto;}
+    .pb-main{grid-row:auto;}
+    .pb-main h2{font-size:27px;}
+  }
+
+  /* ===== about / advantages (bento) ===== */
+  .about-bento{
+    display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(2,auto);gap:20px;
+  }
+  .ab-card{
+    background:var(--bg-card);
+    border-radius:var(--radius);
+    padding:32px;
+    box-shadow:var(--shadow);
+    border:1px solid rgba(19,25,46,0.04);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+    display:flex;flex-direction:column;
+  }
+  .ab-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-hover);}
+  .ab-card.span2{grid-column:span 2;}
+  .ab-card.span3{grid-column:span 3;}
+  .ab-card.span4{grid-column:span 4;}
+  .ab-card.dark{background:var(--navy);color:#fff;}
+  .ab-card.dark p{color:#B9C2DE;}
+  .ab-icon-tile{
+    width:100%;aspect-ratio:16/10;border-radius:18px;margin-bottom:20px;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ab-card h3{font-size:20px;font-weight:800;margin-bottom:10px;color:inherit;letter-spacing:-0.3px;}
+  .ab-card p{font-size:15px;color:var(--text-muted);}
+  .ab-tag{
+    display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;
+    padding:6px 14px;border-radius:50px;margin-bottom:14px;width:fit-content;
+  }
+  @media(max-width:980px){
+    .about-bento{grid-template-columns:repeat(2,1fr);}
+    .ab-card.span2, .ab-card.span3, .ab-card.span4{grid-column:span 2;}
+  }
+  @media(max-width:620px){
+    .about-bento{grid-template-columns:1fr;}
+    .ab-card.span2, .ab-card.span3, .ab-card.span4{grid-column:span 1;}
+  }
+
+  /* ===== projects (bento) ===== */
+  .projects{background:#fff;}
+  .projects-bento{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:22px;
+  }
+  .proj-card{
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    border:1px solid rgba(19,25,46,0.04);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+    display:flex;flex-direction:column;
+    background:var(--bg-card);
+  }
+  .proj-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-hover);}
+  .proj-card.featured{grid-column:span 2;grid-row:span 1;}
+  .proj-media{
+    width:100%;aspect-ratio:16/11;position:relative;overflow:hidden;
+  }
+  .proj-card.featured .proj-media{aspect-ratio:16/8;}
+  .proj-body{padding:26px 28px 28px;display:flex;flex-direction:column;gap:12px;flex:1;}
+  .proj-tagline{
+    font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;
+  }
+  .proj-card h3{font-size:21px;font-weight:800;color:var(--ink);letter-spacing:-0.3px;}
+  .proj-body p.desc{font-size:14.5px;color:var(--text-muted);}
+  .project-skills{
+    display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:8px;
+  }
+  .skill-pill{
+    font-size:12px;font-weight:700;
+    padding:6px 13px;border-radius:50px;
+    background:var(--bg);color:var(--navy2);
+    border:1px solid rgba(19,25,46,0.06);
+  }
+  @media(max-width:980px){.projects-bento{grid-template-columns:repeat(2,1fr);}.proj-card.featured{grid-column:span 2;}}
+  @media(max-width:620px){.projects-bento{grid-template-columns:1fr;}.proj-card.featured{grid-column:span 1;}}
+
+  /* generic image placeholder used inside media containers */
+  .media-ph{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    color:rgba(255,255,255,0.7);
+  }
+  .media-ph .ph-tag{
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+    padding:5px 12px;border-radius:50px;background:rgba(255,255,255,0.16);
+  }
+  .media-ph .ph-sub{font-size:12px;font-weight:600;opacity:.85;max-width:80%;text-align:center;}
+
+  .media-img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  /* ===== confidence block ===== */
+  .confidence{
+    background:var(--cream);
+    position:relative;
+  }
+  .confidence-grid{
+    display:grid;grid-template-columns:1fr 1.05fr;gap:50px;align-items:center;
+  }
+  .confidence-media{
+    border-radius:32px;overflow:hidden;aspect-ratio:4/3;
+    background:linear-gradient(140deg, var(--purple), var(--teal));
+  }
+  .confidence-text .section-tag{margin-bottom:20px;}
+  .confidence-text h2{font-size:clamp(28px,3.4vw,42px);font-weight:800;color:var(--ink);margin-bottom:20px;line-height:1.18;letter-spacing:-1px;}
+  .confidence-text .accent{
+    background:var(--teal);color:var(--ink);padding:1px 10px;border-radius:10px;
+  }
+  .confidence-text p{font-size:17px;color:var(--text-muted);margin-bottom:16px;}
+  .confidence-skills{
+    display:flex;flex-direction:column;gap:12px;margin-top:24px;
+  }
+  .confidence-skill{
+    display:flex;align-items:center;gap:16px;
+    background:#fff;
+    border:1px solid rgba(19,25,46,0.06);
+    border-radius:16px;padding:16px 20px;
+    font-size:15px;color:var(--ink);font-weight:700;
+    transition:transform .3s ease;
+  }
+  .confidence-skill:hover{transform:translateX(6px);}
+  .confidence-skill .ic{
+    width:40px;height:40px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0;
+  }
+  @media(max-width:880px){
+    .confidence-grid{grid-template-columns:1fr;gap:36px;}
+    .confidence-media{order:-1;}
+    .confidence-text h2{font-size:27px;}
+  }
+
+  /* ===== format ===== */
+  .format{background:#fff;}
+  .format-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+  }
+  .format-step{
+    padding:32px 26px;
+    border-radius:var(--radius);
+    background:var(--step-bg, var(--cream));
+    position:relative;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+    border:1px solid rgba(19,25,46,0.04);
+  }
+  .format-step:hover{transform:translateY(-8px);}
+  .format-step .step-num{
+    width:46px;height:46px;border-radius:14px;
+    background:var(--ink);
+    color:var(--step-num-color, var(--yellow));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:19px;margin-bottom:20px;
+    transform:rotate(-4deg);
+  }
+  .format-step h4{font-size:17px;font-weight:800;margin-bottom:10px;color:var(--step-text, var(--ink));letter-spacing:-0.3px;}
+  .format-step p{font-size:14px;color:var(--step-text-muted, var(--text-muted));}
+  @media(max-width:880px){.format-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.format-grid{grid-template-columns:1fr;}}
+
+  /* ===== price ===== */
+  .price-section{
+    background:var(--navy);
+    position:relative;
+  }
+  .price-section .section-head h2{color:#fff;}
+  .price-section .section-head p{color:#B9C2DE;}
+  .price-section .section-tag{background:var(--navy2);border-color:rgba(255,255,255,0.08);color:#fff;}
+  .price-card{
+    position:relative;
+    max-width:600px;margin:0 auto;
+    background:#fff;
+    border-radius:32px;
+    padding:52px 48px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.3);
+    display:grid;grid-template-columns:1fr;gap:0;
+  }
+  .price-top{
+    display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;flex-wrap:wrap;gap:16px;
+  }
+  .price-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--yellow);
+    color:var(--ink);
+    padding:9px 20px;border-radius:50px;
+    font-weight:800;font-size:13.5px;
+  }
+  .price-amount-block{text-align:right;}
+  .price-amount{
+    font-size:56px;font-weight:800;color:var(--ink);
+    letter-spacing:-1.5px;line-height:1;
+  }
+  .price-amount span{font-size:18px;color:var(--text-muted);font-weight:700;}
+  .price-period{color:var(--text-muted);font-size:14px;font-weight:700;margin-top:4px;}
+  .price-features{
+    display:flex;flex-direction:column;gap:14px;text-align:left;
+    margin-bottom:32px;
+  }
+  .price-feature{
+    display:flex;align-items:center;gap:14px;font-size:15.5px;color:var(--ink);font-weight:700;
+  }
+  .price-feature .check{
+    width:26px;height:26px;border-radius:8px;
+    background:rgba(31,207,192,0.12);color:var(--teal-dark);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;
+  }
+  .price-trial{
+    background:var(--cream);
+    border-radius:16px;padding:16px 20px;
+    font-size:14.5px;color:var(--ink);font-weight:700;
+    margin-bottom:26px;
+    display:flex;align-items:center;gap:10px;
+  }
+  @media(max-width:600px){
+    .price-card{padding:38px 26px;}
+    .price-amount{font-size:42px;}
+    .price-top{flex-direction:column;}
+    .price-amount-block{text-align:left;}
+  }
+
+  /* ===== reviews ===== */
+  .reviews{background:var(--cream);}
+  .reviews-bento{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:60px;
+  }
+  .review-card{
+    background:var(--bg-card);
+    border-radius:var(--radius);
+    padding:28px;
+    box-shadow:var(--shadow);
+    transition:transform .3s ease, box-shadow .3s ease;
+    border:1px solid rgba(19,25,46,0.04);
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .review-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-hover);}
+  .review-card.wide{grid-column:span 2;}
+  .review-stars{color:var(--yellow-dark);font-size:16px;letter-spacing:3px;}
+  .review-text{font-size:15px;color:var(--ink);line-height:1.7;flex:1;}
+  .review-author{display:flex;align-items:center;gap:12px;}
+  .review-avatar{
+    width:42px;height:42px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#fff;font-size:15px;flex-shrink:0;
+  }
+  .review-name{font-weight:800;font-size:14px;color:var(--ink);}
+  .review-role{font-size:12px;color:var(--text-muted);}
+  @media(max-width:980px){.reviews-bento{grid-template-columns:repeat(2,1fr);}.review-card.wide{grid-column:span 2;}}
+  @media(max-width:620px){.reviews-bento{grid-template-columns:1fr;}.review-card.wide{grid-column:span 1;}}
+
+  .works-title{font-size:24px;font-weight:800;margin-bottom:28px;color:var(--ink);letter-spacing:-0.5px;}
+  .works-bento{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
+  }
+  .work-tile{
+    aspect-ratio:4/3;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
+    transition:transform .35s ease;
+  }
+  .work-tile:hover{transform:scale(1.03) rotate(-1deg);}
+  .work-tile:nth-child(1){background:var(--teal);}
+  .work-tile:nth-child(2){background:var(--purple);}
+  .work-tile:nth-child(3){background:var(--yellow);}
+  .work-tile:nth-child(4){background:var(--pink);}
+  @media(max-width:880px){.works-bento{grid-template-columns:repeat(2,1fr);}}
+
+  /* ===== faq ===== */
+  .faq-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:50px;}
+  .faq-list{display:flex;flex-direction:column;gap:14px;}
+  .faq-item{
+    background:var(--bg-card);
+    border-radius:18px;
+    border:1px solid rgba(19,25,46,0.06);
+    overflow:hidden;
+  }
+  .faq-question{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 26px;cursor:pointer;
+    font-weight:800;font-size:16px;color:var(--ink);
+    user-select:none;
+    transition:background .2s ease;
+  }
+  .faq-question:hover{background:var(--cream);}
+  .faq-icon{
+    width:32px;height:32px;border-radius:10px;
+    background:var(--cream);color:var(--teal-dark);
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;font-weight:800;flex-shrink:0;margin-left:16px;
+    transition:transform .35s ease, background .35s ease, color .35s ease;
+  }
+  .faq-item.open .faq-icon{transform:rotate(45deg);background:var(--yellow);color:var(--ink);}
+  .faq-answer{
+    max-height:0;overflow:hidden;
+    transition:max-height .4s ease, padding .4s ease;
+    font-size:14.5px;color:var(--text-muted);
+    padding:0 26px;
+  }
+  .faq-item.open .faq-answer{max-height:420px;padding:0 26px 22px;}
+  @media(max-width:880px){.faq-layout{grid-template-columns:1fr;gap:32px;}}
+
+  /* ===== invitation banner ===== */
+  .invite-banner{padding:0;}
+  .invite-inner{
+    background:linear-gradient(120deg, var(--teal) 0%, #2BE0D0 60%, var(--teal-dark) 130%);
+    border-radius:30px;
+    padding:48px 54px;
+    display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap;
+    position:relative;overflow:hidden;
+  }
+  .invite-inner::before{
+    content:'';position:absolute;top:-60px;right:-40px;width:220px;height:220px;border-radius:50%;
+    background:rgba(255,255,255,0.18);
+  }
+  .invite-inner::after{
+    content:'';position:absolute;bottom:-70px;left:30%;width:180px;height:180px;border-radius:50%;
+    background:rgba(19,25,46,0.06);
+  }
+  .invite-text{position:relative;z-index:1;max-width:620px;}
+  .invite-text h3{font-size:clamp(22px,2.6vw,30px);font-weight:800;color:var(--ink);line-height:1.25;letter-spacing:-0.5px;}
+  .invite-text p{font-size:16px;color:rgba(19,25,46,0.7);margin-top:8px;font-weight:600;}
+  .invite-btn{
+    position:relative;z-index:1;
+    background:var(--ink);color:#fff;
+    padding:18px 34px;border-radius:50px;font-weight:800;font-size:16px;white-space:nowrap;
+    transition:transform .25s ease;flex-shrink:0;
+  }
+  .invite-btn:hover{transform:translateY(-3px);}
+  @media(max-width:768px){
+    .invite-inner{padding:34px 28px;flex-direction:column;align-items:flex-start;}
+    .invite-btn{width:100%;text-align:center;}
+  }
+
+  /* ===== timeline ===== */
+  .timeline-wrap{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-top:10px;
+  }
+  .tl-step{position:relative;padding:0 16px;}
+  .tl-step .tl-dot{
+    width:54px;height:54px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:#fff;margin-bottom:20px;position:relative;z-index:2;
+  }
+  .tl-step .tl-week{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:6px;}
+  .tl-step h4{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px;letter-spacing:-0.3px;}
+  .tl-step p{font-size:14px;color:var(--text-muted);}
+  .tl-line{
+    position:absolute;top:27px;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--teal),var(--yellow),var(--purple),var(--pink));
+    z-index:1;border-radius:2px;
+  }
+  @media(max-width:768px){
+    .timeline-wrap{grid-template-columns:1fr;gap:24px;}
+    .tl-line{display:none;}
+    .tl-step{padding:0;display:flex;gap:18px;align-items:flex-start;}
+    .tl-step .tl-dot{margin-bottom:0;flex-shrink:0;}
+  }
+
+  /* ===== final cta / form ===== */
+  .final-cta{
+    background:var(--yellow);
+    position:relative;overflow:hidden;
+  }
+  .final-grid{
+    display:grid;grid-template-columns:1.1fr 1fr;gap:54px;align-items:center;position:relative;z-index:1;
+  }
+  .final-text h2{font-size:clamp(28px,3.6vw,42px);font-weight:800;color:var(--ink);margin-bottom:18px;line-height:1.15;letter-spacing:-1px;}
+  .final-text p{font-size:17.5px;color:rgba(19,25,46,0.75);margin-bottom:26px;}
+  .final-points{display:flex;flex-direction:column;gap:13px;}
+  .final-point{display:flex;align-items:center;gap:14px;font-weight:800;color:var(--ink);font-size:15.5px;}
+  .final-point .check{
+    width:28px;height:28px;border-radius:10px;
+    background:rgba(255,255,255,0.6);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;
+  }
+  .form-card{
+    background:#fff;border-radius:28px;padding:40px;
+    box-shadow:0 28px 70px rgba(19,25,46,0.18);
+  }
+  .form-card h3{font-size:24px;font-weight:800;margin-bottom:8px;color:var(--ink);letter-spacing:-0.5px;}
+  .form-card .form-sub{font-size:14.5px;color:var(--text-muted);margin-bottom:26px;}
+  .form-group{margin-bottom:18px;}
+  .form-group label{display:block;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:7px;}
+  .form-group input{
+    width:100%;padding:14px 17px;border-radius:14px;
+    border:1.5px solid rgba(19,25,46,0.12);
+    font-size:15px;font-family:inherit;
+    transition:border-color .2s ease, box-shadow .2s ease;
+    outline:none;
+  }
+  .form-group input:focus{border-color:var(--teal);box-shadow:0 0 0 4px rgba(31,207,192,0.14);}
+  .form-submit{
+    width:100%;background:var(--ink);
+    color:var(--yellow);
+    padding:18px;border-radius:50px;border:none;
+    font-weight:800;font-size:17px;cursor:pointer;
+    transition:transform .25s ease, background .25s ease;
+  }
+  .form-submit:hover{transform:translateY(-2px);background:var(--navy2);}
+  .form-note{font-size:12px;color:var(--text-muted);text-align:center;margin-top:16px;}
+  .form-success{
+    display:none;text-align:center;padding:34px 10px;
+  }
+  .form-success.show{display:block;}
+  .form-success .icon-circle{
+    width:64px;height:64px;border-radius:18px;
+    background:var(--cream);color:var(--teal-dark);
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;margin:0 auto 18px;
+  }
+  .form-success h3{font-size:22px;margin-bottom:10px;color:var(--ink);}
+  .form-success p{font-size:14.5px;color:var(--text-muted);}
+  @media(max-width:880px){
+    .final-grid{grid-template-columns:1fr;gap:36px;}
+    .final-text h2{font-size:28px;}
+  }
+
+  /* ===== footer ===== */
+  footer{background:var(--navy);color:#A9B6DC;padding:54px 0 32px;}
+  .footer-grid{
+    display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px;margin-bottom:38px;
+  }
+  .footer-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;color:#fff;margin-bottom:16px;}
+  .footer-col h4{color:#fff;font-size:15px;font-weight:800;margin-bottom:16px;}
+  .footer-col p, .footer-col a{font-size:14px;color:#A9B6DC;display:block;margin-bottom:11px;transition:color .2s ease;}
+  .footer-col a:hover{color:var(--yellow);}
+  .footer-bottom{
+    border-top:1px solid rgba(255,255,255,0.08);
+    padding-top:26px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    font-size:13px;color:#7D8DBA;
+  }
+  @media(max-width:880px){
+    .footer-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:768px){
+    .footer-grid{grid-template-columns:1fr;gap:30px;}
+    .footer-bottom{flex-direction:column;text-align:center;}
+  }
+
+  /* ===== sticky mobile cta ===== */
+  .sticky-cta{
+    position:fixed;bottom:0;left:0;right:0;z-index:999;
+    background:#fff;
+    padding:12px 20px;
+    box-shadow:0 -6px 24px rgba(19,25,46,0.15);
+    display:none;
+  }
+  .sticky-cta a{
+    display:block;text-align:center;
+    background:var(--ink);
+    color:var(--yellow);
+    padding:15px;border-radius:50px;font-weight:800;font-size:15.5px;
+  }
+  @media(max-width:880px){
+    .sticky-cta{display:block;}
+    body{padding-bottom:80px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<header id="header">
+  <div class="header-inner">
+    <a href="#top" class="logo">
+      <span class="roof">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12L13 4L23 12" stroke="#13192E" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      Кибердом
+    </a>
+    <nav>
+      <a href="#about">О школе</a>
+      <a href="#projects">Проекты</a>
+      <a href="#price">Цена</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <a href="#form" class="nav-cta desktop-only">Пробное занятие</a>
+    <button class="burger" id="burger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#about">О школе</a>
+    <a href="#projects">Проекты</a>
+    <a href="#price">Цена</a>
+    <a href="#reviews">Отзывы</a>
+    <a href="#faq">Вопросы</a>
+    <a href="#form" class="nav-cta" style="text-align:center;">Пробное занятие</a>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge reveal visible">
+          <span class="pulse"></span> Онлайн-лицей мышления и технологий
+        </div>
+        <h1 class="reveal visible">
+          Через месяц у вашего ребёнка будет свой <span class="accent-circle">мультфильм</span>, <span class="highlight">бот</span> или игра — и уверенность, что он может больше, чем думал
+        </h1>
+        <p class="sub reveal visible delay-1">
+          Онлайн-занятия для детей 9–12 лет. Учим не программированию, а мышлению и созиданию — раз в неделю ребёнок создаёт собственный проект с помощью нейросетей.
+        </p>
+        <div class="hero-ctas reveal visible delay-2">
+          <a href="#form" class="btn-primary">Запишись на пробное занятие <span class="arrow">→</span></a>
+        </div>
+        <div class="hero-partner reveal visible delay-2">
+          <img src="images/krutaya-peremena-logo.png" alt="Логотип школы Крутая перемена" class="hero-partner-logo">
+          <div class="hero-partner-text">
+            Для учеников школы <b>«Крутая перемена»</b> — первое занятие бесплатно.
+            <span>Просто укажите это при записи, и мы подберём удобное время.</span>
+          </div>
+        </div>
+        <div class="hero-stats reveal visible delay-3">
+          <div class="hero-stat">
+            <div class="num">до 8</div>
+            <div class="label">детей в группе</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num">1 раз</div>
+            <div class="label">в неделю, онлайн</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num">5 000 ₽</div>
+            <div class="label">в месяц, всё включено</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual reveal delay-1">
+        <div class="hero-tile big">
+          <img class="media-img" src="images/hero-main.png" alt="Ребёнок создаёт AI-иллюстрацию персонажа на ноутбуке">
+          <div class="floatie f1">🎬</div>
+          <div class="floatie f2">✨</div>
+        </div>
+        <div class="hero-tile t1">
+          <img class="media-img knight-img" src="images/hero-knight.png" alt="Рыцарь выпрыгивает из экрана ноутбука — проект ученика">
+        </div>
+        <div class="hero-tile t2">
+          <img class="media-img" src="images/hero-scratch.png" alt="Девочка показывает свою игру, созданную на занятии">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROBLEM (bento) ===== -->
+<section class="problem">
+  <div class="container">
+    <div class="problem-bento">
+      <div class="pb-card pb-main reveal">
+        <h2>Мир меняется быстрее, чем учат в школе. <span class="accent">Мы учим детей не бояться этого — а создавать.</span></h2>
+        <p>Профессии, которых не существовало 5 лет назад, становятся востребованными — а те, что казались надёжными, исчезают. Забрать телефон, поставить ограничения, поругаться — вы это уже пробовали, но экран давно стал частью мира ребёнка.</p>
+        <p>Мы верим: главный навык будущего — не конкретный язык программирования, а способность думать, создавать и адаптироваться. Что если направить экранное время туда, где ребёнок этому и учится?</p>
+        <div class="pb-quote">
+          Мы не готовим программистов. Мы готовим людей, которые не боятся будущего — потому что умеют в нём создавать.
+        </div>
+      </div>
+      <div class="pb-card pb-stat s1 reveal delay-1">
+        <div class="num">2–5 ч</div>
+        <div class="label">в день ребёнок и так проводит за экраном — листает ленту и смотрит чужие видео</div>
+      </div>
+      <div class="pb-card pb-stat s2 reveal delay-2">
+        <div class="num">60 мин</div>
+        <div class="label">раз в неделю — и это время превращается в работу над своим проектом</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INVITATION BANNER ===== -->
+<section class="invite-banner">
+  <div class="container">
+    <div class="invite-inner reveal">
+      <div class="invite-text">
+        <h3>Не знаете, понравится ли ребёнку?</h3>
+        <p>Дайте ему попробовать — первое занятие бесплатно и ни к чему не обязывает.</p>
+      </div>
+      <a href="#form" class="invite-btn">Запишись на пробное занятие →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ABOUT / WHAT WE TEACH (bento) ===== -->
+<section id="about">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-tag">Чему мы на самом деле учим</span>
+      <h2>Не «программирование».<br>Мышление и создание</h2>
+      <p>На занятиях ребёнок не учится «сидеть в телефоне правильно» — он учится превращать экран в инструмент. Это меняет не только навыки, но и отношение ребёнка к себе</p>
+    </div>
+    <div class="about-bento">
+      <div class="ab-card span3 reveal">
+        <div class="ab-icon-tile" style="background:var(--teal);">
+          <img class="media-img" src="images/about-online.png" alt="Ребёнок за ноутбуком дома, уютная атмосфера">
+        </div>
+        <span class="ab-tag" style="background:rgba(31,207,192,0.12);color:var(--teal-dark);">01 · От зрителя к автору</span>
+        <h3>Из потребления в созидание</h3>
+        <p>Большинство детей знают, как смотреть видео и играть. Мы учим — как их делать. Это меняет саму роль ребёнка с экраном: из зрителя в автора.</p>
+      </div>
+      <div class="ab-card span3 dark reveal delay-1">
+        <span class="ab-tag" style="background:rgba(255,201,60,0.18);color:var(--yellow);">02 · Доказательство, не оценка</span>
+        <h3>Результат каждый месяц</h3>
+        <p>Когда ребёнок видит «я сделал это сам, и оно работает» — это не просто проект. Это доказательство, что он способен на больше, чем думал вчера.</p>
+        <div class="ab-icon-tile" style="background:var(--navy2);margin-top:20px;margin-bottom:0;">
+          <img class="media-img" src="images/about-group.png" alt="Видеозвонок с группой детей и преподавателем">
+        </div>
+      </div>
+      <div class="ab-card span3 reveal delay-2">
+        <span class="ab-tag" style="background:rgba(139,108,250,0.12);color:#6A4FE0;">03 · В действии, не в теории</span>
+        <h3>Критическое мышление</h3>
+        <p>Каждый проект — это десятки маленьких решений: что добавить, как исправить ошибку, в какую сторону развивать идею. Это и есть критическое мышление — в действии, не в теории.</p>
+        <div class="ab-icon-tile" style="background:var(--purple);margin-top:20px;margin-bottom:0;">
+          <img class="media-img" src="images/about-mascot.png" alt="Иконка-маскот школы Кибердом" style="object-fit:contain;background:#fff;">
+        </div>
+      </div>
+      <div class="ab-card span3 dark reveal delay-3">
+        <span class="ab-tag" style="background:rgba(255,92,138,0.18);color:var(--pink);">04 · На всю жизнь</span>
+        <h3>Ответственность и дисциплина</h3>
+        <p>Один проект — один месяц — один результат. Ребёнок учится не бросать на середине, видеть путь от идеи до готового продукта. Это дисциплина, которая остаётся на всю жизнь.</p>
+        <p style="margin-top:16px;color:#B9C2DE;">При этом формат остаётся бережным: занимаемся онлайн из дома, в группах до 8 человек, а первое занятие — бесплатно и ни к чему не обязывает.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROJECTS (bento) ===== -->
+<section class="projects" id="projects">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-tag">Что создаёт ребёнок</span>
+      <h2>Каждый проект — это маленькая суперспособность</h2>
+      <p>Ребёнок сам выбирает, что создавать — и через это незаметно осваивает мышление, которое пригодится в любой сфере жизни</p>
+    </div>
+    <div class="projects-bento">
+      <div class="proj-card featured reveal">
+        <div class="proj-media" style="background:var(--teal);">
+          <img class="media-img" src="images/project-cartoon.png" alt="Кадр из настоящего AI-мультика ученика">
+        </div>
+        <div class="proj-body">
+          <div class="proj-tagline" style="color:var(--teal-dark);">Нейромультики</div>
+          <h3>AI-мультфильм</h3>
+          <p class="desc">Ребёнок придумывает сюжет, создаёт героев и озвучку с помощью нейросетей и монтирует свой собственный мультфильм — от идеи до финальных титров.</p>
+          <div class="project-skills">
+            <span class="skill-pill">Сторителлинг</span>
+            <span class="skill-pill">Работа с ИИ</span>
+            <span class="skill-pill">Монтаж</span>
+          </div>
+        </div>
+      </div>
+      <div class="proj-card reveal delay-1">
+        <div class="proj-media" style="background:var(--purple);">
+          <img class="media-img" src="images/project-game-real.png" alt="Скриншот игры ученика — платформер с монетами и уровнями">
+        </div>
+        <div class="proj-body">
+          <div class="proj-tagline" style="color:#6A4FE0;">Геймдев</div>
+          <h3>Своя игра</h3>
+          <p class="desc">От задумки и персонажей до уровней и правил — игра, в которую можно дать поиграть друзьям и услышать «это ты сделал?!».</p>
+          <div class="project-skills">
+            <span class="skill-pill">Логика</span>
+            <span class="skill-pill">Дизайн</span>
+          </div>
+        </div>
+      </div>
+      <div class="proj-card reveal delay-2">
+        <div class="proj-media" style="background:var(--yellow);">
+          <img class="media-img" src="images/project-bot.png" alt="Telegram-бот ученика, который отвечает на вопросы и помогает с учёбой">
+        </div>
+        <div class="proj-body">
+          <div class="proj-tagline" style="color:var(--yellow-dark);">Telegram</div>
+          <h3>Чат-бот</h3>
+          <p class="desc">Ребёнок продумывает диалоги и логику, собирает своего бота — помощника, викторину или игру — и запускает его в работу.</p>
+          <div class="project-skills">
+            <span class="skill-pill">Алгоритмы</span>
+            <span class="skill-pill">Логика</span>
+          </div>
+        </div>
+      </div>
+      <div class="proj-card reveal delay-3">
+        <div class="proj-media" style="background:var(--pink);">
+          <img class="media-img" src="images/project-site.png" alt="Главная страница сайта ученика">
+        </div>
+        <div class="proj-body">
+          <div class="proj-tagline" style="color:#D63E72;">Веб-разработка</div>
+          <h3>Личный сайт</h3>
+          <p class="desc">Ребёнок придумывает дизайн, наполняет страницы и публикует свой сайт — например, портфолио или сайт о своём хобби.</p>
+          <div class="project-skills">
+            <span class="skill-pill">Дизайн</span>
+            <span class="skill-pill">Публикация</span>
+          </div>
+        </div>
+      </div>
+      <div class="proj-card reveal delay-4">
+        <div class="proj-media" style="background:var(--navy2);">
+          <img class="media-img" src="images/project-song.png" alt="Звуковая волна и микрофон" style="object-fit:contain;background:#fff;">
+        </div>
+        <div class="proj-body">
+          <div class="proj-tagline" style="color:var(--yellow);">Текст + ИИ</div>
+          <h3>Песня или стих</h3>
+          <p class="desc">Ребёнок пишет слова, выбирает настроение и стиль и создаёт с помощью нейросетей свою песню или стихотворение — то, что хочется включить друзьям.</p>
+          <div class="project-skills">
+            <span class="skill-pill">Творчество</span>
+            <span class="skill-pill">Работа с ИИ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONFIDENCE BLOCK ===== -->
+<section class="confidence">
+  <div class="container">
+    <div class="confidence-grid">
+      <div class="confidence-media reveal">
+        <img class="media-img" src="images/confidence.png" alt="Ребёнок уверенно работает за ноутбуком с организованными папками на экране">
+      </div>
+      <div class="confidence-text reveal delay-1">
+        <span class="section-tag">Главный результат</span>
+        <h2>А ещё — <span class="accent">уверенность за компьютером</span> на всю жизнь</h2>
+        <p>Параллельно с проектом ребёнок без скучных уроков «информатики» осваивает то, что сегодня — базовая грамотность: уверенно работать с файлами, программами и нейросетями, не бояться новых инструментов.</p>
+        <p>Это навык на годы вперёд — независимо от того, чем ребёнок займётся дальше.</p>
+        <div class="confidence-skills">
+          <div class="confidence-skill"><span class="ic" style="background:rgba(31,207,192,0.18);">🖱️</span> Уверенно работает с файлами, программами и интерфейсами</div>
+          <div class="confidence-skill"><span class="ic" style="background:rgba(255,201,60,0.2);">🧠</span> Думает шагами: от идеи — к плану — к результату</div>
+          <div class="confidence-skill"><span class="ic" style="background:rgba(139,108,250,0.2);">✨</span> Не боится пробовать новое и ошибаться на пути к цели</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FORMAT / TIMELINE ===== -->
+<section class="format">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="section-tag">Как проходит обучение</span>
+      <h2>1 проект = 1 месяц = 4 занятия</h2>
+      <p>Ребёнок проходит полный цикл: придумал → сделал → получил результат, который можно показать. Раз в неделю по 60 минут, онлайн в небольшой группе</p>
+    </div>
+    <div class="timeline-wrap">
+      <div class="tl-line"></div>
+      <div class="tl-step reveal">
+        <div class="tl-dot" style="background:var(--teal);">1</div>
+        <div>
+          <div class="tl-week">Неделя 1</div>
+          <h4>Придумываем идею</h4>
+          <p>Ребёнок выбирает, что хочет создать, и продумывает замысел будущего проекта.</p>
+        </div>
+      </div>
+      <div class="tl-step reveal delay-1">
+        <div class="tl-dot" style="background:var(--yellow);color:var(--ink);">2</div>
+        <div>
+          <div class="tl-week">Неделя 2</div>
+          <h4>Начинаем делать</h4>
+          <p>Первые шаги к результату — ребёнок собирает основу проекта своими руками.</p>
+        </div>
+      </div>
+      <div class="tl-step reveal delay-2">
+        <div class="tl-dot" style="background:var(--purple);">3</div>
+        <div>
+          <div class="tl-week">Неделя 3</div>
+          <h4>Дорабатываем</h4>
+          <p>Улучшаем, исправляем ошибки, добавляем детали — проект обретает форму.</p>
+        </div>
+      </div>
+      <div class="tl-step reveal delay-3">
+        <div class="tl-dot" style="background:var(--pink);">4</div>
+        <div>
+          <div class="tl-week">Неделя 4</div>
+          <h4>Готовый проект и показ</h4>
+          <p>Ребёнок завершает проект и показывает результат — то, чем можно гордиться.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICE ===== -->
+<section class="price-section" id="price">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="section-tag">Стоимость</span>
+      <h2>Один простой тариф</h2>
+      <p>Всё включено, без скрытых платежей. Первое занятие — бесплатно.</p>
+    </div>
+    <div class="price-card reveal">
+      <div class="price-top">
+        <div class="price-badge">🔥 Первое занятие бесплатно</div>
+        <div class="price-amount-block">
+          <div class="price-amount">5 000 ₽<span> /мес</span></div>
+          <div class="price-period">4 занятия по 60 минут</div>
+        </div>
+      </div>
+      <div class="price-features">
+        <div class="price-feature"><span class="check">✓</span> Группа до 8 человек</div>
+        <div class="price-feature"><span class="check">✓</span> Свой проект на выбор: мультик, игра, бот, сайт, рассказ или песня</div>
+        <div class="price-feature"><span class="check">✓</span> Обратная связь от преподавателя на каждом занятии</div>
+        <div class="price-feature"><span class="check">✓</span> Чат с поддержкой для родителей</div>
+        <div class="price-feature"><span class="check">✓</span> Готовый результат своими руками к концу месяца</div>
+      </div>
+      <div class="price-trial">👋 Первое занятие бесплатно — приходите и посмотрите сами</div>
+      <a href="#form" class="btn-primary" style="display:flex;justify-content:center;width:100%;">Запишись на пробное занятие</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REVIEWS ===== -->
+<section class="reviews" id="reviews">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-tag">Отзывы</span>
+      <h2>Что говорят родители</h2>
+      <p>Реальные впечатления семей, которые уже занимаются в Кибердоме</p>
+    </div>
+    <div class="reviews-bento">
+      <div class="review-card wide reveal">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">Сын обычно сидел в телефоне без дела, а тут сам ждёт занятия — сделал свой мультик и показывал всей семье. Очень доволен собой.</p>
+        <div class="review-author">
+          <div class="review-avatar" style="background:var(--teal);">МК</div>
+          <div>
+            <div class="review-name">Мария К.</div>
+            <div class="review-role">мама ученика, 10 лет</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal delay-1">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">Понравилось, что занятия онлайн и не привязаны к дому — можем заниматься даже на даче.</p>
+        <div class="review-author">
+          <div class="review-avatar" style="background:var(--pink);">АС</div>
+          <div>
+            <div class="review-name">Андрей С.</div>
+            <div class="review-role">папа ученицы, 11 лет</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal delay-2">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">Группа небольшая, преподаватель реально следит за каждым ребёнком. После пробного урока сразу решили продолжать.</p>
+        <div class="review-author">
+          <div class="review-avatar" style="background:var(--yellow-dark);">ЕВ</div>
+          <div>
+            <div class="review-name">Елена В.</div>
+            <div class="review-role">мама ученика, 9 лет</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal delay-3">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">Ребёнок гордится своим ботом в Telegram и показывает друзьям — это лучшая мотивация, чем оценки в школе.</p>
+        <div class="review-author">
+          <div class="review-avatar" style="background:var(--purple);">ИП</div>
+          <div>
+            <div class="review-name">Игорь П.</div>
+            <div class="review-role">папа ученика, 12 лет</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" style="background:#fff;">
+  <div class="container">
+    <div class="faq-layout">
+      <div class="section-head reveal" style="margin-bottom:0;">
+        <span class="section-tag">Вопросы и ответы</span>
+        <h2>Частые вопросы родителей</h2>
+        <p>Если не нашли ответ — напишите нам, ответим в Telegram</p>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Ребёнку 9 лет — не рано?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Нет, это подходящий возраст. Программа разработана именно под детей 9–12 лет: мы опираемся на интерес и творчество, а не на сложную теорию. Ребёнок создаёт понятные ему вещи — мультики, игры, ботов — и учится в процессе.
+          </div>
+        </div>
+        <div class="faq-item reveal delay-1">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            А если он совсем не умеет программировать?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Так и должно быть — мы начинаем с нуля. Никакой подготовки не нужно. Ребёнок осваивает всё постепенно, через работу над собственным проектом, а не по учебнику.
+          </div>
+        </div>
+        <div class="faq-item reveal delay-2">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Это весь день за компьютером — это вредно?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Занятие идёт всего 60 минут раз в неделю. И это принципиально другое экранное время: ребёнок не потребляет контент, а создаёт его — думает, принимает решения, доводит проект до результата.
+          </div>
+        </div>
+        <div class="faq-item reveal delay-3">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            А если ребёнок бросит через месяц?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Каждый месяц — это завершённый проект, а не бесконечный курс. Даже если ребёнок захочет остановиться, у него уже останется готовый результат и опыт «я сделал это сам». А формат «один месяц — один проект» как раз помогает не бросать на середине.
+          </div>
+        </div>
+        <div class="faq-item reveal delay-4">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Чем это отличается от бесплатных уроков на YouTube?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            На YouTube ребёнок смотрит, как делают другие. У нас он делает сам — в живой мини-группе, с преподавателем, который видит именно его работу, отвечает на вопросы и помогает довести проект до конца. Разница как между просмотром матча и игрой на поле.
+          </div>
+        </div>
+        <div class="faq-item reveal delay-5">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Как проходит занятие технически — что нужно для подключения?
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Достаточно компьютера или ноутбука с интернетом и видеосвязью. Никаких программ заранее устанавливать не нужно — на первом занятии поможем всё настроить.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA / FORM ===== -->
+<section class="final-cta" id="form">
+  <div class="container">
+    <div class="final-grid">
+      <div class="final-text reveal">
+        <h2>Дайте ребёнку шанс создать своё первое цифровое чудо</h2>
+        <p>Оставьте контакты — мы свяжемся, подберём удобное время и группу. Первое занятие ничего не стоит и ни к чему не обязывает.</p>
+        <div class="final-points">
+          <div class="final-point"><span class="check">✓</span> Ответим в течение дня</div>
+          <div class="final-point"><span class="check">✓</span> Подберём удобную группу и время</div>
+          <div class="final-point"><span class="check">✓</span> Первое занятие — бесплатно</div>
+        </div>
+      </div>
+      <div class="form-card reveal delay-1">
+        <div id="formDefault">
+          <h3>Бесплатный пробный урок</h3>
+          <p class="form-sub">Заполните форму — мы свяжемся с вами в Telegram или по телефону</p>
+          <form id="leadForm" onsubmit="return submitForm(event)">
+            <div class="form-group">
+              <label for="parentName">Имя родителя</label>
+              <input type="text" id="parentName" placeholder="Как вас зовут?" required>
+            </div>
+            <div class="form-group">
+              <label for="childAge">Возраст ребёнка</label>
+              <input type="text" id="childAge" placeholder="Например, 10 лет" required>
+            </div>
+            <div class="form-group">
+              <label for="contact">Телефон или Telegram</label>
+              <input type="text" id="contact" placeholder="+7 ... или @username" required>
+            </div>
+            <button type="submit" class="form-submit">Запишись на пробное занятие</button>
+          </form>
+          <p class="form-note">Нажимая кнопку, вы соглашаетесь с <a href="kiberdom_offer.html" style="color:var(--teal-dark);font-weight:700;">договором-офертой</a>, <a href="kiberdom_policy.html" style="color:var(--teal-dark);font-weight:700;">политикой обработки персональных данных</a> и <a href="kiberdom_consent.html" style="color:var(--teal-dark);font-weight:700;">согласием на обработку персональных данных</a></p>
+        </div>
+        <div class="form-success" id="formSuccess">
+          <div class="icon-circle">✓</div>
+          <h3>Заявка отправлена!</h3>
+          <p>Мы свяжемся с вами в ближайшее время, чтобы подобрать удобное время для бесплатного занятия.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <span class="roof">
+            <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="20">
+              <path d="M3 12L13 4L23 12" stroke="#FFC93C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Кибердом
+        </div>
+        <p>Онлайн-лицей мышления и технологий для детей 9–12 лет. Учим мыслить и создавать при помощи технологий: AI-мультики, игры, ботов, сайты, рассказы и песни.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Навигация</h4>
+        <a href="#about">О школе</a>
+        <a href="#projects">Проекты</a>
+        <a href="#price">Цена</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#faq">Вопросы</a>
+      </div>
+      <div class="footer-col">
+        <h4>Контакты</h4>
+        <a href="mailto:info@kdomonline.ru">info@kdomonline.ru</a>
+        <a href="https://t.me/SputnikSveta" target="_blank">Telegram: @SputnikSveta</a>
+        <a href="https://kdomonline.ru" target="_blank">kdomonline.ru</a>
+      </div>
+      <div class="footer-col">
+        <h4>Документы</h4>
+        <a href="kiberdom_offer.html">Договор-оферта</a>
+        <a href="kiberdom_policy.html">Политика обработки ПД</a>
+        <a href="kiberdom_consent.html">Согласие на обработку ПД</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Кибердом. Все права защищены.</span>
+      <span>ИП Ефименко Светлана Владимировна · ИНН 773572814101</span>
+    </div>
+  </div>
+</footer>
+
+<div class="sticky-cta">
+  <a href="#form">Запишись на пробное занятие</a>
+</div>
+
+<script>
+  const header = document.getElementById('header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  const burger = document.getElementById('burger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  burger.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  function toggleFaq(el) {
+    const item = el.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-icon').textContent = '+';
+    });
+    if (!wasOpen) {
+      item.classList.add('open');
+      item.querySelector('.faq-icon').textContent = '+';
+    }
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    
+    const parentName = document.getElementById('parentName').value;
+    const childAge = document.getElementById('childAge').value;
+    const contact = document.getElementById('contact').value;
+    
+    try {
+      // Отправляем данные на бэкенд
+      const response = await fetch('https://kiberdom-backend.vercel.app/api/submit-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parentName,
+          childAge,
+          contact
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        document.getElementById('formDefault').style.display = 'none';
+        document.getElementById('formSuccess').classList.add('show');
+      } else {
+        alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Ошибка отправки: ' + error.message);
+    }
+    
+    return false;
+  }
+</script>
+
+</body>
+</html>
